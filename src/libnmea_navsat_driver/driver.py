@@ -143,7 +143,7 @@ class RosNMEADriver(object):
             # WAAS
             9: [
                 self.default_epe_quality9,
-                NavSatStatus.STATUS_FIX,
+                NavSatStatus.STATUS_NO_FIX,
                 NavSatFix.COVARIANCE_TYPE_APPROXIMATED
             ]
         }
