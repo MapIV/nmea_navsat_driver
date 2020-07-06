@@ -119,31 +119,31 @@ class RosNMEADriver(object):
             # SPS
             1: [
                 self.default_epe_quality1,
-                NavSatStatus.STATUS_FIX,
+                NavSatStatus.STATUS_NO_FIX,
                 NavSatFix.COVARIANCE_TYPE_APPROXIMATED
             ],
             # DGPS
             2: [
                 self.default_epe_quality2,
-                NavSatStatus.STATUS_SBAS_FIX,
+                NavSatStatus.STATUS_NO_FIX,
                 NavSatFix.COVARIANCE_TYPE_APPROXIMATED
             ],
             # RTK Fix
             4: [
                 self.default_epe_quality4,
-                NavSatStatus.STATUS_GBAS_FIX,
+                NavSatStatus.STATUS_FIX,
                 NavSatFix.COVARIANCE_TYPE_APPROXIMATED
             ],
             # RTK Float
             5: [
                 self.default_epe_quality5,
-                NavSatStatus.STATUS_GBAS_FIX,
+                NavSatStatus.STATUS_NO_FIX,
                 NavSatFix.COVARIANCE_TYPE_APPROXIMATED
             ],
             # WAAS
             9: [
                 self.default_epe_quality9,
-                NavSatStatus.STATUS_GBAS_FIX,
+                NavSatStatus.STATUS_NO_FIX,
                 NavSatFix.COVARIANCE_TYPE_APPROXIMATED
             ]
         }
