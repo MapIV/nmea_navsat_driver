@@ -3,5 +3,3 @@ nmea_navsat_driver:
     port: "/dev/ttyUSB0"
     baud: 115200
     frame_id: "gnss"
-    time_ref_source: "gnss"
-    useRMC: False

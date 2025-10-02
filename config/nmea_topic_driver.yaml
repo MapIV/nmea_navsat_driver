@@ -1,7 +1,5 @@
 nmea_navsat_driver:
   ros__parameters:
-    port: "/dev/ttyUSB0"
-    baud: 115200
     frame_id: "gnss"
     time_ref_source: "gnss"
     useRMC: False
