@@ -61,7 +61,7 @@ def convert_longitude(field):
     return safe_float(field[0:3]) + safe_float(field[3:]) / 60.0
 
 
-def convert_time(nmea_utc):
+def convert_time(nmea_utc, date_str=None):
     """
     Extract time info from a NMEA UTC time string and use it to generate a UNIX epoch time.
     Time information (hours, minutes, seconds) is extracted from the given string and augmented
@@ -81,8 +81,6 @@ def convert_time(nmea_utc):
     if not nmea_utc[0:2] or not nmea_utc[2:4] or not nmea_utc[4:6]:
         return (float('NaN'), float('NaN'))
 
-    # Get current time in UTC for date information
-    utc_time = datetime.datetime.utcnow()
     hours = int(nmea_utc[0:2])
     minutes = int(nmea_utc[2:4])
     seconds = int(nmea_utc[4:6])
@@ -91,12 +89,21 @@ def convert_time(nmea_utc):
     if len(nmea_utc) > 7:
         nanosecs = int(nmea_utc[7:]) * pow(10, 9 - len(nmea_utc[7:]))
 
-    # Resolve the ambiguity of day
-    day_offset = int((utc_time.hour - hours)/12.0)
-    utc_time += datetime.timedelta(day_offset)
-    utc_time = utc_time.replace(hour=hours, minute=minutes, second=seconds)
+    if date_str:
+        utc_year = int(date_str[4:6])
+        years = utc_year + 2000
+        months = int(date_str[2:4])
+        days = int(date_str[0:2])
+        unix_secs = calendar.timegm((years, months, days, hours, minutes, seconds))
+    else:
+        # Get current time in UTC for date information
+        utc_time = datetime.datetime.utcnow()
+        # Resolve the ambiguity of day
+        day_offset = int((utc_time.hour - hours)/12.0)
+        utc_time += datetime.timedelta(day_offset)
+        utc_time = utc_time.replace(hour=hours, minute=minutes, second=seconds)
+        unix_secs = calendar.timegm(utc_time.timetuple())
 
-    unix_secs = calendar.timegm(utc_time.timetuple())
     return (unix_secs, nanosecs)
 
 
@@ -117,17 +124,9 @@ def convert_time_rmc(date_str, time_str):
     if not date_str[0:6] or not time_str[0:2] or not time_str[2:4] or not time_str[4:6]:
         return (float('NaN'), float('NaN'))
 
-    pc_year = datetime.date.today().year
-
-    # Resolve the ambiguity of century
-    """
-    example 1: utc_year = 99, pc_year = 2100
-    years = 2100 + int((2100 % 100 - 99) / 50.0) = 2099
-    example 2: utc_year = 00, pc_year = 2099
-    years = 2099 + int((2099 % 100 - 00) / 50.0) = 2100
-    """
+    # Resolve the ambiguity of century by assuming all years are in the 21st century.
     utc_year = int(date_str[4:6])
-    years = pc_year + int((pc_year % 100 - utc_year) / 50.0)
+    years = utc_year + 2000
 
     months = int(date_str[2:4])
     days = int(date_str[0:2])
@@ -214,7 +213,7 @@ parse_maps = {
 }
 
 
-def parse_nmea_sentence(nmea_sentence):
+def parse_nmea_sentence(nmea_sentence, last_rmc_date=None):
     # Check for a valid nmea sentence
     if not re.match(r'(^\$GP|^\$GN|^\$GL|^\$IN|^\$P).*\*[0-9A-Fa-f]{2}$', nmea_sentence):
         logger.debug("Regex didn't match, sentence not valid NMEA? Sentence was: %s"
@@ -234,7 +233,10 @@ def parse_nmea_sentence(nmea_sentence):
 
     parsed_sentence = {}
     for entry in parse_map:
-        parsed_sentence[entry[0]] = entry[1](fields[entry[2]])
+        if entry[0] == 'utc_time' and sentence_type == 'GGA':
+            parsed_sentence[entry[0]] = entry[1](fields[entry[2]], last_rmc_date)
+        else:
+            parsed_sentence[entry[0]] = entry[1](fields[entry[2]])
 
     if sentence_type == "RMC":
         parsed_sentence["utc_time"] = convert_time_rmc(fields[9], fields[1])

@@ -54,6 +54,8 @@ class Ros2NMEADriver(Node):
         self.use_RMC = self.declare_parameter('useRMC', False).value
         self.use_PASHR = self.declare_parameter('use_PASHR', False).value
         self.use_GNSS_time = self.declare_parameter('use_GNSS_time', False).value
+        self.use_rmc_date_for_gga = self.declare_parameter('use_rmc_date_for_gga', True).value
+        self.last_rmc_date = None
         self.valid_fix = False
 
         if not self.use_GNSS_time:
@@ -129,7 +131,18 @@ class Ros2NMEADriver(Node):
                                    "Sentence was: %s" % nmea_string)
             return False
 
-        parsed_sentence = parser.parse_nmea_sentence(nmea_string)
+        rmc_date_to_use = None
+        if self.use_rmc_date_for_gga:
+            if 'RMC' in nmea_string:
+                try:
+                    fields = nmea_string.split(',')
+                    if fields[9]:
+                        self.last_rmc_date = fields[9]
+                except IndexError:
+                    pass
+            rmc_date_to_use = self.last_rmc_date
+
+        parsed_sentence = parser.parse_nmea_sentence(nmea_string, rmc_date_to_use)
         if not parsed_sentence:
             self.get_logger().debug("Failed to parse NMEA sentence. Sentence was: %s" % nmea_string)
             return False
@@ -222,6 +235,9 @@ class Ros2NMEADriver(Node):
 
             # Only publish a fix from RMC if the use_RMC flag is set.
             if self.use_RMC:
+                if self.use_GNSS_time and not math.isnan(data['utc_time'][0]):
+                    current_fix.header.stamp = rclpy.time.Time(seconds=data['utc_time'][0], nanoseconds=data['utc_time'][1]).to_msg()
+
                 if data['fix_valid']:
                     current_fix.status.status = NavSatStatus.STATUS_FIX
                 else:
