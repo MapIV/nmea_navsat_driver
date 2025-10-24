@@ -37,6 +37,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix, NavSatStatus, TimeReference
 from geometry_msgs.msg import TwistStamped, QuaternionStamped
+from nmea_msgs.msg import Gpgga
 from tf_transformations import quaternion_from_euler
 from libnmea_navsat_driver.checksum_utils import check_nmea_checksum
 from libnmea_navsat_driver import parser
@@ -49,6 +50,7 @@ class Ros2NMEADriver(Node):
         self.fix_pub = self.create_publisher(NavSatFix, 'fix', 10)
         self.vel_pub = self.create_publisher(TwistStamped, 'vel', 10)
         self.heading_pub = self.create_publisher(QuaternionStamped, 'heading', 10)
+        self.gpgga_pub = self.create_publisher(Gpgga, 'gpgga', 10)
 
         self.time_ref_source = self.declare_parameter('time_ref_source', 'gps').value
         self.use_RMC = self.declare_parameter('useRMC', False).value
@@ -212,6 +214,27 @@ class Ros2NMEADriver(Node):
             current_fix.position_covariance[8] = (2 * hdop * self.alt_std_dev) ** 2  # FIXME
 
             self.fix_pub.publish(current_fix)
+
+            # Publish GPGGA quality information
+            gpgga_msg = Gpgga()
+            gpgga_msg.header.stamp = current_time
+            if self.use_GNSS_time:
+                gpgga_msg.header.stamp = rclpy.time.Time(seconds=data['utc_time'][0], nanoseconds=data['utc_time'][1]).to_msg()
+            gpgga_msg.header.frame_id = frame_id
+            gpgga_msg.message_id = "GGA"
+            gpgga_msg.utc_seconds = data['utc_time'][0] if not math.isnan(data['utc_time'][0]) else 0.0
+            gpgga_msg.lat = current_fix.latitude
+            gpgga_msg.lon = current_fix.longitude
+            gpgga_msg.lat_dir = data['latitude_direction']
+            gpgga_msg.lon_dir = data['longitude_direction']
+            gpgga_msg.gps_qual = fix_type
+            gpgga_msg.num_sats = data['num_satellites'] if data['num_satellites'] is not None else 0
+            gpgga_msg.hdop = hdop if not math.isnan(hdop) else 99.99
+            gpgga_msg.alt = data['altitude'] if not math.isnan(data['altitude']) else 0.0
+            gpgga_msg.altitude_units = "M"
+            gpgga_msg.undulation = data['mean_sea_level'] if not math.isnan(data['mean_sea_level']) else 0.0
+            gpgga_msg.undulation_units = "M"
+            self.gpgga_pub.publish(gpgga_msg)
 
             if not (math.isnan(data['utc_time'][0]) or self.use_GNSS_time):
                 current_time_ref.time_ref = rclpy.time.Time(seconds=data['utc_time'][0], nanoseconds=data['utc_time'][1]).to_msg()
