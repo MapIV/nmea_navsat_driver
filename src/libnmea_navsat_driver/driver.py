@@ -222,7 +222,7 @@ class Ros2NMEADriver(Node):
                 gpgga_msg.header.stamp = rclpy.time.Time(seconds=data['utc_time'][0], nanoseconds=data['utc_time'][1]).to_msg()
             gpgga_msg.header.frame_id = frame_id
             gpgga_msg.message_id = "GGA"
-            gpgga_msg.utc_seconds = data['utc_time'][0] if not math.isnan(data['utc_time'][0]) else 0.0
+            gpgga_msg.utc_seconds = float(data['utc_time'][0]) if not math.isnan(data['utc_time'][0]) else 0.0
             gpgga_msg.lat = current_fix.latitude
             gpgga_msg.lon = current_fix.longitude
             gpgga_msg.lat_dir = data['latitude_direction']
