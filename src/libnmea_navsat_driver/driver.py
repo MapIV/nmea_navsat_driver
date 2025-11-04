@@ -197,7 +197,9 @@ class Ros2NMEADriver(Node):
             current_fix.longitude = longitude
 
             # Altitude is above ellipsoid, so adjust for mean-sea-level
-            altitude = data['altitude'] + data['mean_sea_level']
+            # 20251031 DON'T ADD mean-sea-level
+            #altitude = data['altitude'] + data['mean_sea_level']
+            altitude = data['altitude']
             current_fix.altitude = altitude
 
             # use default epe std_dev unless we've received a GST sentence with epes
