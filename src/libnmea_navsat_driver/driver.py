@@ -38,7 +38,6 @@ from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix, NavSatStatus, TimeReference
 from geometry_msgs.msg import TwistStamped, QuaternionStamped
 from nmea_msgs.msg import Gpgga
-from tf_transformations import quaternion_from_euler
 from libnmea_navsat_driver.checksum_utils import check_nmea_checksum
 from libnmea_navsat_driver import parser
 
@@ -310,7 +309,7 @@ class Ros2NMEADriver(Node):
                 current_heading = QuaternionStamped()
                 current_heading.header.stamp = current_time
                 current_heading.header.frame_id = frame_id
-                q = quaternion_from_euler(0, 0, math.radians(data['heading']))
+                q = self._quaternion_from_euler(0.0, 0.0, math.radians(data['heading']))
                 current_heading.quaternion.x = q[0]
                 current_heading.quaternion.y = q[1]
                 current_heading.quaternion.z = q[2]
@@ -321,7 +320,7 @@ class Ros2NMEADriver(Node):
             current_heading = QuaternionStamped()
             current_heading.header.stamp = current_time
             current_heading.header.frame_id = frame_id
-            q = quaternion_from_euler(
+            q = self._quaternion_from_euler(
                 math.radians(data['roll']),
                 math.radians(data['pitch']),
                 math.radians(data['heading']))
@@ -341,3 +340,24 @@ class Ros2NMEADriver(Node):
         if len(prefix):
             return '%s/%s' % (prefix, frame_id)
         return frame_id
+
+    @staticmethod
+    def _quaternion_from_euler(roll, pitch, yaw):
+        """Compute quaternion (x, y, z, w) from Euler angles."""
+        half_roll = roll * 0.5
+        half_pitch = pitch * 0.5
+        half_yaw = yaw * 0.5
+
+        sin_r = math.sin(half_roll)
+        cos_r = math.cos(half_roll)
+        sin_p = math.sin(half_pitch)
+        cos_p = math.cos(half_pitch)
+        sin_y = math.sin(half_yaw)
+        cos_y = math.cos(half_yaw)
+
+        x = sin_r * cos_p * cos_y - cos_r * sin_p * sin_y
+        y = cos_r * sin_p * cos_y + sin_r * cos_p * sin_y
+        z = cos_r * cos_p * sin_y - sin_r * sin_p * cos_y
+        w = cos_r * cos_p * cos_y + sin_r * sin_p * sin_y
+
+        return (x, y, z, w)
