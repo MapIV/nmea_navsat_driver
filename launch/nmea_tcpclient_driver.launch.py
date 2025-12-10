@@ -36,14 +36,22 @@ def generate_launch_description():
         description='Path to config file for nmea_tcpclient_driver'
     )
 
+    heading_topic_arg = DeclareLaunchArgument(
+        'heading_topic',
+        default_value='/gnss/quaternion',
+        description='Remapped topic name for Quaternion heading output'
+    )
+
     driver_node = actions.Node(
         package='nmea_navsat_driver',
         executable='nmea_tcpclient_driver',
         output='screen',
-        parameters=[LaunchConfiguration('config_file')])
+        parameters=[LaunchConfiguration('config_file')],
+        remappings=[('heading', LaunchConfiguration('heading_topic'))])
 
     return LaunchDescription([
         config_file_arg,
+        heading_topic_arg,
         driver_node
     ])
 
