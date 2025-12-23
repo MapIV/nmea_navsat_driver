@@ -32,6 +32,7 @@ setup(
                             'nmea_socket_driver = libnmea_navsat_driver.nodes.nmea_socket_driver:main',
                             'nmea_tcpclient_driver = libnmea_navsat_driver.nodes.nmea_tcpclient_driver:main',
                             'nmea_topic_driver = libnmea_navsat_driver.nodes.nmea_topic_driver:main',
-                            'nmea_topic_serial_reader = libnmea_navsat_driver.nodes.nmea_topic_serial_reader:main'],
+                            'nmea_topic_serial_reader = libnmea_navsat_driver.nodes.nmea_topic_serial_reader:main',
+                            'gsof_tcp_driver = libnmea_navsat_driver.nodes.gsof_tcp_driver:main'],
     }
 )

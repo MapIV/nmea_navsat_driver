@@ -7,6 +7,11 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Vector3
+import numpy as np
+
+if not hasattr(np, 'float'):
+    np.float = np.float64
+
 from tf_transformations import quaternion_from_euler
 
 
