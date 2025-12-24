@@ -288,7 +288,7 @@ class Ros2NMEADriver(Node):
                     self.time_ref_pub.publish(current_time_ref)
 
             # Publish velocity from RMC regardless, since GGA doesn't provide it.
-            if data['fix_valid']:
+            if data['fix_valid'] and false: # disabled, since VTG is available
                 current_vel = TwistStamped()
                 current_vel.header.stamp = current_time
                 current_vel.header.frame_id = frame_id
@@ -322,8 +322,8 @@ class Ros2NMEADriver(Node):
             current_heading.header.frame_id = frame_id
             q = self._quaternion_from_euler(
                 math.radians(data['roll']),
-                math.radians(data['pitch']),
-                math.radians(data['heading']))
+                -math.radians(data['pitch']),
+                -math.radians(data['heading']) + math.pi / 2.0)
             current_heading.quaternion.x = q[0]
             current_heading.quaternion.y = q[1]
             current_heading.quaternion.z = q[2]
