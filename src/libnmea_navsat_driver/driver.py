@@ -288,7 +288,7 @@ class Ros2NMEADriver(Node):
                     self.time_ref_pub.publish(current_time_ref)
 
             # Publish velocity from RMC regardless, since GGA doesn't provide it.
-            if data['fix_valid'] and false: # disabled, since VTG is available
+            if data['fix_valid'] and False: # disabled, since VTG is available
                 current_vel = TwistStamped()
                 current_vel.header.stamp = current_time
                 current_vel.header.frame_id = frame_id
