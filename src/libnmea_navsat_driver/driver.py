@@ -116,6 +116,11 @@ class Ros2NMEADriver(Node):
                 NavSatStatus.STATUS_GBAS_FIX,
                 NavSatFix.COVARIANCE_TYPE_APPROXIMATED
             ],
+            6: [
+                self.default_epe_quality1,
+                NavSatStatus.STATUS_NO_FIX,
+                NavSatFix.COVARIANCE_TYPE_APPROXIMATED
+            ],
             # WAAS
             9: [
                 self.default_epe_quality9,
